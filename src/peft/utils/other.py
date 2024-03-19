@@ -502,6 +502,7 @@ def get_auto_gptq_quant_linear(gptq_quantization_config):
             bits=bits,
             disable_exllama=not (use_exllama and exllama_version == 1),
             disable_exllamav2=not (use_exllama and exllama_version == 2),
+            disable_marlin=not gptq_quantization_config.use_marlin,
         )
         return AutoGPTQQuantLinear
     return None

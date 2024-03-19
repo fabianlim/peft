@@ -225,7 +225,7 @@ class LoraModel(BaseTuner):
         if hasattr(child, "base_layer"):
             child = child.base_layer
 
-        if not hasattr(new_module, "base_layer"):
+        if not hasattr(new_module, "base_layer") and hasattr(child, 'weight'):
             new_module.weight = child.weight
             if hasattr(child, "bias"):
                 new_module.bias = child.bias
@@ -240,7 +240,11 @@ class LoraModel(BaseTuner):
         # dispatch to correct device
         for name, module in new_module.named_modules():
             if (self.prefix in name) or ("ranknum" in name):
-                weight = child.qweight if hasattr(child, "qweight") else child.weight
+                try:
+                    weight = child.qweight if hasattr(child, "qweight") else child.weight
+                except AttributeError:
+                    # TODO: this logic can be more robust
+                    weight = (list(child.parameters()) + list(child.buffers()))[0]
                 module.to(weight.device)
 
     def _mark_only_adapters_as_trainable(self, model: nn.Module) -> None:
